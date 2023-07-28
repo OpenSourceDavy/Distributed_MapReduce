@@ -1,8 +1,15 @@
-
+//
+// The interface that must be implemented to support MRDFS.
+// Starter code for CS 454/654.
+// DO NOT change this file.
+//
 
 #ifndef MRDFS_CLIENT_H
 #define MRDFS_CLIENT_H
 
+// The FUSE API has been changed a number of times.  Our code needs to define
+// the version of the API that we assume.  As of this writing, a stable API
+// version is 26.
 #define FUSE_USE_VERSION 26
 
 #include <ctype.h>
@@ -49,7 +56,7 @@ int MRdfs_cli_fsync(void *userdata, const char *path,
                      struct fuse_file_info *fi);
 
 // CHANGE METADATA
-int MRdfs_cli_utimensat(void *userdata, const char *path,
+int MRdfs_cli_utimens(void *userdata, const char *path,
                        const struct timespec ts[2]);
 
 #ifdef __cplusplus
