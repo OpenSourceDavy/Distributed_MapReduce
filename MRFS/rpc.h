@@ -39,33 +39,18 @@ extern "C" {
 #define UNEXPECTED_MSG -301
 #define FAILED_TO_SEND -302
 
-// Useful typedef, of the type of functions that are registered.
+
 typedef int (*skeleton)(int *, void **);
-
-// SERVER FUNCTIONS
-
-// Set up the RPC library for the server.
 extern int rpcServerInit();
 
-// Register a RPC function with name, and expected types argTypes. The function
-// that is registered should look like skeleton. That is
-// int f(int* argTypes, void** args);
 extern int rpcRegister(char *name, int *argTypes, skeleton f);
 
-// Hand over control to the RPC library to execute functions.
 extern int rpcExecute();
 
-// CLIENT FUNCTIONS
-
-// Set up the RPC library for the client.
-// Note the client library looks for environment variables:
-// SERVER_ADDRESS
-// SERVER_PORT
 extern int rpcClientInit();
 
-// Call the RPC name, with types argTypes and args.
 extern int rpcCall(char *name, int *argTypes, void **args);
-// Call to tear down the RPC library when you are finished with it.
+
 extern int rpcClientDestroy();
 
 #ifdef __cplusplus

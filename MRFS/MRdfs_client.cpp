@@ -1,5 +1,5 @@
 
-#include "watdfs_client.h"
+#include "MRdfs_client.h"
 #include "debug.h"
 #include <sys/stat.h>
 #include <map>
@@ -22,7 +22,7 @@ struct Client_information {
 
 int rpc_call_getattr(void *userdata, const char *path, struct stat *statbuf) {
     // SET UP THE RPC CALL
-    DLOG("watdfs_cli_getattr called for '%s'", path);
+    DLOG("MRdfs_cli_getattr called for '%s'", path);
 
     // getattr has 3 arguments.
     int ARG_COUNT = 3;
@@ -70,7 +70,7 @@ int rpc_call_getattr(void *userdata, const char *path, struct stat *statbuf) {
     int rpc_ret = rpcCall((char *)"getattr", arg_types, args);
 
     // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+    // The integer value MRdfs_cli_getattr will return.
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("getattr rpc failed with error '%d'", rpc_ret);
@@ -87,7 +87,7 @@ int rpc_call_getattr(void *userdata, const char *path, struct stat *statbuf) {
     }
 
     if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
+        // If the return code of MRdfs_cli_getattr is negative (an error), then
         // we need to make sure that the stat structure is filled with 0s. Otherwise,
         // FUSE will be confused by the contradicting return values.
         memset(statbuf, 0, sizeof(struct stat));
@@ -144,7 +144,7 @@ int rpc_call_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
     int rpc_ret = rpcCall((char *)"mknod", arg_types, args);
 
     // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+    // The integer value MRdfs_cli_getattr will return.
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("mknod rpc failed with error '%d'", rpc_ret);
@@ -160,12 +160,7 @@ int rpc_call_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
         fxn_ret = return_code;
     }
 
-    /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
-        // we need to make sure that the stat structure is filled with 0s. Otherwise,
-        // FUSE will be confused by the contradicting return values.
-        memset(statbuf, 0, sizeof(struct stat));
-    }*/
+
 
     // Clean up the memory we have allocated.
     delete []args;
@@ -215,7 +210,7 @@ int rpc_call_open(void *userdata, const char *path,
     int rpc_ret = rpcCall((char *)"open", arg_types, args);
 
     // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+    // The integer value MRdfs_cli_getattr will return.
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("open rpc failed with error '%d'", rpc_ret);
@@ -231,12 +226,7 @@ int rpc_call_open(void *userdata, const char *path,
         fxn_ret = return_code;
     }
 
-    /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
-        // we need to make sure that the stat structure is filled with 0s. Otherwise,
-        // FUSE will be confused by the contradicting return values.
-        memset(statbuf, 0, sizeof(struct stat));
-    }*/
+
 
     // Clean up the memory we have allocated.
     delete []args;
@@ -284,29 +274,20 @@ int rpc_call_release(void *userdata, const char *path,
 
     int rpc_ret = rpcCall((char *)"release", arg_types, args);
 
-    // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("release rpc failed with error '%d'", rpc_ret);
-        // Something went wrong with the rpcCall, return a sensible return
-        // value. In this case lets return, -EINVAL
+
         fxn_ret = -EINVAL;
     } else {
-        // Our RPC call succeeded. However, it's possible that the return code
-        // from the server is not 0, that is it may be -errno. Therefore, we
-        // should set our function return value to the retcode from the server.
+
 
         // TODO: set the function return value to the return code from the server.
         fxn_ret = return_code;
     }
 
-    /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
-        // we need to make sure that the stat structure is filled with 0s. Otherwise,
-        // FUSE will be confused by the contradicting return values.
-        memset(statbuf, 0, sizeof(struct stat));
-    }*/
+
 
     // Clean up the memory we have allocated.
     delete []args;
@@ -337,9 +318,6 @@ int rpc_call_read(void *userdata, const char *path, char *buf, size_t size,
     // The path has string length (strlen) + 1 (for the null character).
     int pathlen = strlen(path) + 1;
 
-    // Fill in the arguments
-    // The first argument is the path, it is an input only argument, and a char
-    // array. The length of the array is the length of the path.
     arg_types[0] =
             (1u << ARG_INPUT) | (1u << ARG_ARRAY) | (ARG_CHAR << 16u) | (uint) pathlen;
     // For arrays the argument is the array pointer, not a pointer to a pointer.
@@ -372,19 +350,7 @@ int rpc_call_read(void *userdata, const char *path, char *buf, size_t size,
     arg_types[6] = 0;
 
 
-    /*long size_copy = size;
-    while(size_copy > MAX_ARRAY_LEN){
-        size = MAX_ARRAY_LEN;
-        int rpc_ret = rpcCall((char *)"read", arg_types, args);
-        if (rpc_ret < 0 ) {
-            return -EINVAL;
-        }
-        offset += MAX_ARRAY_LEN;
-        size_copy-= MAX_ARRAY_LEN;
-    }
-    size = size_copy;*/
-    //buf = (char *)malloc(size+1);
-    //memset(buf,0,sizeof(size+1));
+
     char *buf_total = (char *)malloc(size+1);
     memset(buf_total,0,sizeof(size+1));
     long offset_copy =offset;
@@ -436,39 +402,6 @@ int rpc_call_read(void *userdata, const char *path, char *buf, size_t size,
     delete []args;
     return total_read;
 
-    /*int rpc_ret = rpcCall((char *)"read", arg_types, args);
-
-    // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
-    int fxn_ret = 0;
-    if (rpc_ret < 0) {
-        DLOG("read rpc failed with error '%d'", rpc_ret);
-        // Something went wrong with the rpcCall, return a sensible return
-        // value. In this case lets return, -EINVAL
-        fxn_ret = -EINVAL;
-    } else {
-        // Our RPC call succeeded. However, it's possible that the return code
-        // from the server is not 0, that is it may be -errno. Therefore, we
-        // should set our function return value to the retcode from the server.
-
-        // TODO: set the function return value to the return code from the server.
-        DLOG("read content in client: %s\n", buf);
-        DLOG("sys_ret in client: %d\n", return_code);
-        fxn_ret = return_code;
-    }
-
-    /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
-        // we need to make sure that the stat structure is filled with 0s. Otherwise,
-        // FUSE will be confused by the contradicting return values.
-        memset(statbuf, 0, sizeof(struct stat));
-    }*/
-
-    // Clean up the memory we have allocated.
-    //delete []args;
-
-    // Finally return the value we got from the server.
-    //return fxn_ret;
 
     return -ENOSYS;
 }
@@ -573,78 +506,6 @@ int rpc_call_write(void *userdata, const char *path, const char *buf,
     delete []args;
     return total_read;
 
-    /*long size_copy = size;
-    while(size_copy > MAX_ARRAY_LEN){
-        size = MAX_ARRAY_LEN;
-        int rpc_ret = rpcCall((char *)"write", arg_types, args);
-        if (rpc_ret < 0 ) {
-            return -EINVAL;
-        }
-        offset += MAX_ARRAY_LEN;
-        size_copy-= MAX_ARRAY_LEN;
-    }
-    size = size_copy;*/
-
-    /*long size_copy = size;
-    long total_read = 0;
-    long chunk_size;
-    while (total_read < size_copy){
-        long remaining_size = size-total_read;
-        if(remaining_size>MAX_ARRAY_LEN)
-            chunk_size = MAX_ARRAY_LEN;
-        else
-            chunk_size = remaining_size;
-        size = chunk_size;
-        int rpc_ret = rpcCall((char *)"write", arg_types, args);
-        if (rpc_ret < 0) {
-            return -EINVAL;
-        }
-        if(return_code < 0){
-            return return_code;
-        }
-        if(return_code == 0){
-            return total_read;
-        }
-        offset+=return_code;
-        total_read+=return_code;
-        if(return_code < chunk_size)
-            break;
-    }
-    return total_read;*/
-
-    /*int rpc_ret = rpcCall((char *)"write", arg_types, args);
-
-    // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
-    int fxn_ret = 0;
-    if (rpc_ret < 0) {
-        DLOG("write rpc failed with error '%d'", rpc_ret);
-        // Something went wrong with the rpcCall, return a sensible return
-        // value. In this case lets return, -EINVAL
-        fxn_ret = -EINVAL;
-    } else {
-        // Our RPC call succeeded. However, it's possible that the return code
-        // from the server is not 0, that is it may be -errno. Therefore, we
-        // should set our function return value to the retcode from the server.
-
-        // TODO: set the function return value to the return code from the server.
-            fxn_ret = return_code;
-    }
-
-    /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
-        // we need to make sure that the stat structure is filled with 0s. Otherwise,
-        // FUSE will be confused by the contradicting return values.
-        memset(statbuf, 0, sizeof(struct stat));
-    }*/
-
-    // Clean up the memory we have allocated.
-    //delete []args;
-
-    // Finally return the value we got from the server.
-    //return fxn_ret;
-
-
     return -ENOSYS;
 }
 
@@ -686,7 +547,7 @@ int rpc_call_truncate(void *userdata, const char *path, off_t newsize) {
     int rpc_ret = rpcCall((char *)"truncate", arg_types, args);
 
     // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+    // The integer value MRdfs_cli_getattr will return.
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("truncate rpc failed with error '%d'", rpc_ret);
@@ -703,7 +564,7 @@ int rpc_call_truncate(void *userdata, const char *path, off_t newsize) {
     }
 
     /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
+        // If the return code of MRdfs_cli_getattr is negative (an error), then
         // we need to make sure that the stat structure is filled with 0s. Otherwise,
         // FUSE will be confused by the contradicting return values.
         memset(statbuf, 0, sizeof(struct stat));
@@ -757,7 +618,7 @@ int rpc_call_fsync(void *userdata, const char *path,
     int rpc_ret = rpcCall((char *)"fsync", arg_types, args);
 
     // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+    // The integer value MRdfs_cli_getattr will return.
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("fsync rpc failed with error '%d'", rpc_ret);
@@ -774,7 +635,7 @@ int rpc_call_fsync(void *userdata, const char *path,
     }
 
     /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
+        // If the return code of MRdfs_cli_getattr is negative (an error), then
         // we need to make sure that the stat structure is filled with 0s. Otherwise,
         // FUSE will be confused by the contradicting return values.
         memset(statbuf, 0, sizeof(struct stat));
@@ -830,7 +691,7 @@ int rpc_call_utimensat(void *userdata, const char *path,
     int rpc_ret = rpcCall((char *)"utimensat", arg_types, args);
 
     // HANDLE THE RETURN
-    // The integer value watdfs_cli_getattr will return.
+    // The integer value MRdfs_cli_getattr will return.
     int fxn_ret = 0;
     if (rpc_ret < 0) {
         DLOG("utimensat rpc failed with error '%d'", rpc_ret);
@@ -847,7 +708,7 @@ int rpc_call_utimensat(void *userdata, const char *path,
     }
 
     /*if (fxn_ret < 0) {
-        // If the return code of watdfs_cli_getattr is negative (an error), then
+        // If the return code of MRdfs_cli_getattr is negative (an error), then
         // we need to make sure that the stat structure is filled with 0s. Otherwise,
         // FUSE will be confused by the contradicting return values.
         memset(statbuf, 0, sizeof(struct stat));
@@ -1082,7 +943,7 @@ int upload(struct Client_information *userdata, const char *path, const char *fu
 
 
 // SETUP AND TEARDOWN
-void *watdfs_cli_init(struct fuse_conn_info *conn, const char *path_to_cache,
+void *MRdfs_cli_init(struct fuse_conn_info *conn, const char *path_to_cache,
                       time_t cache_interval, int *ret_code) {
     // TODO: set up the RPC library by calling `rpcClientInit`.
     int  return_code = rpcClientInit();
@@ -1119,7 +980,7 @@ void *watdfs_cli_init(struct fuse_conn_info *conn, const char *path_to_cache,
     return (void *) userdata;
 }
 
-void watdfs_cli_destroy(void *userdata) {
+void MRdfs_cli_destroy(void *userdata) {
     // TODO: clean up your userdata state.
     // TODO: tear down the RPC library by calling `rpcClientDestroy`.
         rpcClientDestroy();
@@ -1129,7 +990,7 @@ void watdfs_cli_destroy(void *userdata) {
 }
 
 // GET FILE ATTRIBUTES
-int watdfs_cli_getattr(void *userdata, const char *path, struct stat *statbuf) {
+int MRdfs_cli_getattr(void *userdata, const char *path, struct stat *statbuf) {
     // SET UP THE RPC CALL
     //(char *)malloc(size+1);
 
@@ -1150,12 +1011,12 @@ int watdfs_cli_getattr(void *userdata, const char *path, struct stat *statbuf) {
     }
 
     if((((struct Client_information *)userdata)->filedatas).find(p) != (((struct Client_information *)userdata)->filedatas).end()){
-        DLOG("IN watdfs_cli_getattr, the client file is open");
+        DLOG("IN MRdfs_cli_getattr, the client file is open");
         int local_mode = (((struct Client_information*)userdata)->filedatas)[p].client_mode;
         if((local_mode & O_ACCMODE) == O_RDONLY){
             int fresh_check = file_freshness_check(userdata,path);
             if(fresh_check == 0) {
-                DLOG("IN watdfs_cli_getattr: client file is fresh, do local stat, update Tc");
+                DLOG("IN MRdfs_cli_getattr: client file is fresh, do local stat, update Tc");
                 ret_code = stat(full_path, statbuf);
                 if(ret_code < 0) {
                     free(full_path);
@@ -1192,17 +1053,17 @@ int watdfs_cli_getattr(void *userdata, const char *path, struct stat *statbuf) {
         }
     }
     else{
-        DLOG("watdfs_cli_getattr: client file exist but is not open, open and copy file, do local stat, close file");
+        DLOG("MRdfs_cli_getattr: client file exist but is not open, open and copy file, do local stat, close file");
         struct fuse_file_info *fi = new struct fuse_file_info;
         fi->flags = O_RDONLY;
-        watdfs_cli_open(userdata,path,fi);
+        MRdfs_cli_open(userdata,path,fi);
         ret_code = stat(full_path, statbuf);
         if(ret_code < 0) {
             free(full_path);
             memset(statbuf, 0, sizeof(struct stat));
             return -errno;
         }
-        watdfs_cli_release(userdata,path,fi);
+        MRdfs_cli_release(userdata,path,fi);
         return ret_code;
 
     }
@@ -1211,7 +1072,7 @@ int watdfs_cli_getattr(void *userdata, const char *path, struct stat *statbuf) {
 }
 
 // CREATE, OPEN AND CLOSE
-int watdfs_cli_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
+int MRdfs_cli_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
 
     int str_len = strlen(((struct Client_information *)userdata)->cachePath) + 1;
 
@@ -1228,14 +1089,14 @@ int watdfs_cli_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
 
     int ret_code = rpc_call_getattr(userdata, path, statbuf);
     if(ret_code < 0){
-        DLOG("watdfs_cli_mknod: No file exists in server side , and it also does not exist in client side");
+        DLOG("MRdfs_cli_mknod: No file exists in server side , and it also does not exist in client side");
         int ret_code1 = rpc_call_mknod((void *)userdata, path, mode, dev);
         if(ret_code1 < 0){
             return ret_code1;
         }
-        DLOG("watdfs_cli_mknod: ret_code1 for rpc_call_mknod %d", ret_code1);
+        DLOG("MRdfs_cli_mknod: ret_code1 for rpc_call_mknod %d", ret_code1);
         ret_code1 = mknod(full_path,mode,dev);
-        DLOG("watdfs_cli_mknod: ret_code1 for local_mknod %d", ret_code1);
+        DLOG("MRdfs_cli_mknod: ret_code1 for local_mknod %d", ret_code1);
         if(ret_code1 < 0){
             return -errno;
         }
@@ -1243,7 +1104,7 @@ int watdfs_cli_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
     }
 
     if(!((((struct Client_information *)userdata)->filedatas).find(p) != (((struct Client_information *)userdata)->filedatas).end())){
-        DLOG("IN watdfs_cli_mknod: server file exist but no client file");
+        DLOG("IN MRdfs_cli_mknod: server file exist but no client file");
         int ret_code1 = mknod(full_path,mode,dev);
         if(ret_code1 < 0){
             return -errno;
@@ -1254,7 +1115,7 @@ int watdfs_cli_mknod(void *userdata, const char *path, mode_t mode, dev_t dev) {
     return 0;
 
 }
-int watdfs_cli_open(void *userdata, const char *path,
+int MRdfs_cli_open(void *userdata, const char *path,
                     struct fuse_file_info *fi) {
     int str_len = strlen(((struct Client_information *)userdata)->cachePath) + 1;
     char *cachepath = (char *)malloc(str_len+1);
@@ -1299,14 +1160,14 @@ int watdfs_cli_open(void *userdata, const char *path,
     //struct Filedata file = {fi->flags, ret_code, time(0)};
     //(((struct Client_information*)userdata)->filedatas)[p] = file;
     ret_code = download((Client_information*)userdata, path, full_path);
-    DLOG("watdfs_cli_open: return download value %d",ret_code);
+    DLOG("MRdfs_cli_open: return download value %d",ret_code);
     if (ret_code < 0) {
         return ret_code;
     }
     else{
         ret_code = open(full_path, fi->flags);
         if (ret_code < 0) {
-            DLOG("watdfs_cli_open: return open value1266 %d",ret_code);
+            DLOG("MRdfs_cli_open: return open value1266 %d",ret_code);
             free(full_path);
             free(statbuf);
             return -errno;
@@ -1317,7 +1178,7 @@ int watdfs_cli_open(void *userdata, const char *path,
         //fi->fh = ret_code;
         struct Filedata file = {fi->flags, ret_code, time(0)};
         (((struct Client_information*)userdata)->filedatas)[p] = file;
-        //DLOG("watdfs_cli_open: file %d",file.file_descriptor);
+        //DLOG("MRdfs_cli_open: file %d",file.file_descriptor);
     }
 
     free(full_path);
@@ -1325,7 +1186,7 @@ int watdfs_cli_open(void *userdata, const char *path,
     return 0;
 }
 
-int watdfs_cli_release(void *userdata, const char *path,
+int MRdfs_cli_release(void *userdata, const char *path,
                        struct fuse_file_info *fi) {
 
     int sys_ret = 0;
@@ -1347,7 +1208,7 @@ int watdfs_cli_release(void *userdata, const char *path,
         sys_ret = upload((Client_information*)userdata, path, full_path);
         if (sys_ret < 0) return sys_ret;
     }
-    DLOG("watdfs_cli_release: %d",(((struct Client_information *)userdata)->filedatas)[p].file_descriptor);
+    DLOG("MRdfs_cli_release: %d",(((struct Client_information *)userdata)->filedatas)[p].file_descriptor);
     sys_ret = close((((struct Client_information *)userdata)->filedatas)[p].file_descriptor);
     if (sys_ret < 0) return -errno;
 
@@ -1363,7 +1224,7 @@ int watdfs_cli_release(void *userdata, const char *path,
 }
 
 // READ AND WRITE DATA
-int watdfs_cli_read(void *userdata, const char *path, char *buf, size_t size,
+int MRdfs_cli_read(void *userdata, const char *path, char *buf, size_t size,
                     off_t offset, struct fuse_file_info *fi) {
     int sys_ret = 0;
 
@@ -1381,15 +1242,15 @@ int watdfs_cli_read(void *userdata, const char *path, char *buf, size_t size,
 
     int file_flag = (((struct Client_information *)userdata)->filedatas)[p].client_mode;
     if((file_flag & O_ACCMODE)!= O_RDONLY){
-        DLOG("watdfs_cli_read: file_flag is not O_RDONLY");
+        DLOG("MRdfs_cli_read: file_flag is not O_RDONLY");
         int sys_ret = pread(file_descriptor, buf, size, offset);
         return sys_ret;
     }
-    DLOG("watdfs_cli_read: file_flag is %d", (file_flag & O_ACCMODE));
+    DLOG("MRdfs_cli_read: file_flag is %d", (file_flag & O_ACCMODE));
 
     int fresh_check = file_freshness_check(userdata,path);
     if(fresh_check != 0) {
-        DLOG("IN watdfs_cli_getattr: client file is not fresh, download");
+        DLOG("IN MRdfs_cli_getattr: client file is not fresh, download");
         int ret_code = download((Client_information*)userdata, path, full_path);
         if (ret_code < 0) {
             return -EPERM;
@@ -1399,7 +1260,7 @@ int watdfs_cli_read(void *userdata, const char *path, char *buf, size_t size,
 
     //int ret_code = download((Client_information*)userdata, path, full_path);
     file_descriptor = (((struct Client_information *)userdata)->filedatas)[p].file_descriptor;
-    //DLOG("watdfs_cli_read: download return code %d",ret_code);
+    //DLOG("MRdfs_cli_read: download return code %d",ret_code);
     //if (ret_code < 0) {
     //    return ret_code;
     //}
@@ -1409,22 +1270,22 @@ int watdfs_cli_read(void *userdata, const char *path, char *buf, size_t size,
         free(full_path);
         return -errno;
     }
-    DLOG("watdfs_cli_read: return open value1373 %d",ret_code);
+    DLOG("MRdfs_cli_read: return open value1373 %d",ret_code);
     int ret_code1 = close(ret_code);
     if (ret_code1 < 0) {
         free(full_path);
         return -errno;
     }
-    DLOG("watdfs_cli_read: return close value1380 %d",ret_code1);
+    DLOG("MRdfs_cli_read: return close value1380 %d",ret_code1);
 
     //(((struct Client_information*)userdata)->filedatas)[p].tc = time(0);
-    DLOG("watdfs_cli_read: file_descriptor %d",file_descriptor);
+    DLOG("MRdfs_cli_read: file_descriptor %d",file_descriptor);
     int sys_ret1 = pread(file_descriptor, buf, size, offset);
-    DLOG("watdfs_cli_read: pread return code %d",sys_ret1);
+    DLOG("MRdfs_cli_read: pread return code %d",sys_ret1);
     return sys_ret1;
 
 }
-int watdfs_cli_write(void *userdata, const char *path, const char *buf,
+int MRdfs_cli_write(void *userdata, const char *path, const char *buf,
                      size_t size, off_t offset, struct fuse_file_info *fi) {
 
     int sys_ret = 0;
@@ -1456,7 +1317,7 @@ int watdfs_cli_write(void *userdata, const char *path, const char *buf,
     return ret_code;
 }
 
-int watdfs_cli_truncate(void *userdata, const char *path, off_t newsize) {
+int MRdfs_cli_truncate(void *userdata, const char *path, off_t newsize) {
     int sys_ret = 0;
 
 
@@ -1514,7 +1375,7 @@ int watdfs_cli_truncate(void *userdata, const char *path, off_t newsize) {
 
 }
 
-int watdfs_cli_fsync(void *userdata, const char *path,
+int MRdfs_cli_fsync(void *userdata, const char *path,
                      struct fuse_file_info *fi) {
     int sys_ret = 0;
 
@@ -1544,7 +1405,7 @@ int watdfs_cli_fsync(void *userdata, const char *path,
 }
 
 // CHANGE METADATA
-int watdfs_cli_utimensat(void *userdata, const char *path,
+int MRdfs_cli_utimensat(void *userdata, const char *path,
                        const struct timespec ts[2]) {
     int sys_ret = 0;
 
